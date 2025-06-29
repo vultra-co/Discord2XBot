@@ -1,1 +1,1 @@
-# DiscordThreadsBot
+# Discord2XBot
