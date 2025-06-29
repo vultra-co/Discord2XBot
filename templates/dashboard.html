@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combined Bot Dashboard</title>
+    <style>
+        body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; line-height: 1.5; padding: 15px; background-color: #f8f9fa; color: #212529; margin: 0; }
+        .container { max-width: 900px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.08); }
+        h1 { text-align: center; margin-bottom: 25px; font-weight: 500; color: #343a40; }
+        .bot-section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e9ecef; }
+        .bot-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
+        h2.bot-title { font-size: 1.5em; font-weight: 500; color: #495057; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;}
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .status-card { padding: 15px; border-radius: 5px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center; }
+        .status-card strong { display: block; font-size: 0.9em; color: #6c757d; margin-bottom: 5px; text-transform: uppercase; }
+        .status-value { font-size: 1.1em; font-weight: 600; word-wrap: break-word; }
+        .status-ok { color: #198754; } /* Green */
+        .status-warn { color: #ffc107; } /* Yellow */
+        .status-error { color: #dc3545; } /* Red */
+        .status-muted { color: #6c757d; } /* Muted for unknown/pending */
+        .stats-summary { text-align: center; margin-bottom: 20px; font-size: 1.05em; padding: 10px; background-color: #e9ecef; border-radius: 5px;}
+        .stats-summary span { margin: 0 8px; }
+        .stats-summary strong { font-weight: 600; }
+        .activity-log { margin-top: 15px; }
+        .activity-log h3 { font-weight: 500; margin-bottom: 10px; }
+        .activity-log ul { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 5px; background-color: #ffffff; }
+        .activity-log li { padding: 8px 12px; border-bottom: 1px solid #e9ecef; font-size: 0.9em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .activity-log li:last-child { border-bottom: none; }
+        .log-time { font-size: 0.8em; color: #6c757d; flex-basis: 140px; flex-shrink: 0; text-align: left; }
+        .log-details { flex-grow: 1; word-break: break-word; text-align: left; min-width: 180px; }
+        .log-status { font-weight: bold; flex-basis: 100px; text-align: right; flex-shrink: 0;}
+        .footer { text-align: center; margin-top: 30px; padding-top: 15px; border-top: 1px solid #dee2e6; font-size: 0.85em; color: #6c757d; }
+        .footer span { display: inline-block; margin: 0 10px; }
+        .footer code { background-color: #e9ecef; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Combined Bot Dashboard</h1>
+
+        <div class="bot-section">
+            <h2 class="bot-title">Discord-to-X Bot</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <strong>Bot Status</strong>
+                    <span id="x-bot-status" class="status-value">Loading...</span>
+                </div>
+                <div class="status-card">
+                    <strong>Discord Connection (X-Bot)</strong>
+                    <span id="x-discord-status" class="status-value">Loading...</span>
+                </div>
+                <div class="status-card">
+                    <strong>X API (Last Attempt)</strong>
+                    <span id="x-api-status" class="status-value">Loading...</span>
+                    <div id="x-api-time" style="font-size: 0.75em; margin-top: 3px;">N/A</div>
+                </div>
+            </div>
+            <div class="stats-summary">
+                <span>Attempted: <strong id="x-posts-attempted">0</strong></span> |
+                <span>Successful: <strong id="x-posts-succeeded" class="status-ok">0</strong></span> |
+                <span>Failed: <strong id="x-posts-failed" class="status-error">0</strong></span>
+            </div>
+            <div class="activity-log">
+                <h3>Recent Activity (X Bot)</h3>
+                <ul id="x-activity-log-list">
+                    <li>Loading activity...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="bot-section">
+            <h2 class="bot-title">Discord-to-Threads Bot</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <strong>Bot Status</strong>
+                    <span id="threads-bot-status" class="status-value">Loading...</span>
+                </div>
+                <div class="status-card">
+                    <strong>Discord Connection (Threads-Bot)</strong>
+                    <span id="threads-discord-status" class="status-value">Loading...</span>
+                </div>
+                <div class="status-card">
+                    <strong>Threads API (Last Attempt)</strong>
+                    <span id="threads-api-status" class="status-value">Loading...</span>
+                    <div id="threads-api-time" style="font-size: 0.75em; margin-top: 3px;">N/A</div>
+                </div>
+            </div>
+            <div class="stats-summary">
+                <span>Attempted: <strong id="threads-posts-attempted">0</strong></span> |
+                <span>Successful: <strong id="threads-posts-succeeded" class="status-ok">0</strong></span> |
+                <span>Failed: <strong id="threads-posts-failed" class="status-error">0</strong></span>
+            </div>
+            <div class="activity-log">
+                <h3>Recent Activity (Threads Bot)</h3>
+                <ul id="threads-activity-log-list">
+                    <li>Loading activity...</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+     <div class="footer">
+         <span>Monitoring Channel (X Bot): <code id="x-monitoring-channel">N/A</code></span> |
+         <span>Monitoring Channel (Threads Bot): <code id="threads-monitoring-channel">N/A</code></span> |
+         <span>Last Updated: <span id="last-update-time">N/A</span></span>
+    </div>
+
+    <script>
+        function formatTimestamp(unixTimestamp, includeDate = false) {
+            if (!unixTimestamp) return 'N/A';
+            const date = new Date(unixTimestamp * 1000);
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            if (includeDate) {
+                const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
+                 try {
+                    return date.toLocaleString(undefined, {...dateOptions, ...timeOptions });
+                 } catch (e) { 
+                    return date.toISOString().substring(0, 19).replace('T', ' ');
+                 }
+            }
+            return date.toLocaleTimeString([], timeOptions);
+        }
+
+        function applyStatusClass(element, statusText) {
+            if (!element || typeof statusText !== 'string') {
+                if (element) element.classList.add('status-muted'); // Default for unknown
+                return;
+            }
+            element.className = element.className.replace(/status-(ok|warn|error|muted)/g, '').trim();
+            const lowerStatusText = statusText.toLowerCase();
+            if (lowerStatusText.includes('✅') || lowerStatusText.includes('success') || lowerStatusText.includes('connected') || lowerStatusText.includes('resumed')) {
+                element.classList.add('status-ok');
+            } else if (lowerStatusText.includes('❌') || lowerStatusText.includes('fail') || lowerStatusText.includes('disconnect') || lowerStatusText.includes('error')) {
+                element.classList.add('status-error');
+            } else if (lowerStatusText.includes('⚠️') || lowerStatusText.includes('connecting')) {
+                element.classList.add('status-warn');
+            } else {
+                element.classList.add('status-muted');
+            }
+        }
+
+        function populateActivityLog(listElementId, activityArray) {
+            const logList = document.getElementById(listElementId);
+            logList.innerHTML = ''; // Clear previous entries
+            if (activityArray && activityArray.length > 0) {
+                activityArray.forEach(entry => {
+                    const li = document.createElement('li');
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'log-status';
+                    statusSpan.textContent = entry.status || 'N/A';
+                    applyStatusClass(statusSpan, entry.status || '');
+
+                    li.innerHTML = `
+                        <span class="log-time">${formatTimestamp(entry.timestamp, true)}</span>
+                        <span class="log-details"><strong>${entry.type || 'Event'}:</strong> ${entry.details || ''}</span>
+                    `;
+                    li.appendChild(statusSpan);
+                    logList.appendChild(li);
+                });
+            } else {
+                 logList.innerHTML = '<li>No recent activity recorded.</li>';
+            }
+        }
+
+        async function fetchAndUpdateStatus() {
+            const now = Date.now() / 1000;
+            document.getElementById('last-update-time').textContent = formatTimestamp(now);
+
+            try {
+                const response = await fetch('/api/status/combined'); // Fetch from the X bot's combined endpoint
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+
+                // --- Populate X Bot Section ---
+                if (data.x_bot) {
+                    const xb = data.x_bot;
+                    const xBotStatusEl = document.getElementById('x-bot-status');
+                    xBotStatusEl.textContent = xb.bot_status || 'Unknown ❓';
+                    applyStatusClass(xBotStatusEl, xb.bot_status || '');
+
+                    const xDiscordStatusEl = document.getElementById('x-discord-status');
+                    xDiscordStatusEl.textContent = xb.discord_status || 'Unknown ❓';
+                    applyStatusClass(xDiscordStatusEl, xb.discord_status || '');
+
+                    const xApiStatusEl = document.getElementById('x-api-status');
+                    xApiStatusEl.textContent = xb.last_target_api_status || 'Unknown ❓';
+                    applyStatusClass(xApiStatusEl, xb.last_target_api_status || '');
+                    document.getElementById('x-api-time').textContent = `@ ${formatTimestamp(xb.last_target_api_timestamp)}`;
+                    
+                    document.getElementById('x-posts-attempted').textContent = xb.posts_attempted ?? '0';
+                    document.getElementById('x-posts-succeeded').textContent = xb.posts_succeeded ?? '0';
+                    document.getElementById('x-posts-failed').textContent = xb.posts_failed ?? '0';
+                    populateActivityLog('x-activity-log-list', xb.recent_activity);
+                    document.getElementById('x-monitoring-channel').textContent = xb.monitoring_channel || 'N/A';
+                } else {
+                    document.getElementById('x-bot-status').textContent = 'Data Error ❌';
+                }
+
+                // --- Populate Threads Bot Section ---
+                if (data.threads_bot) {
+                    const tb = data.threads_bot;
+                    const threadsBotStatusEl = document.getElementById('threads-bot-status');
+                    // If fetch_status shows an error, prioritize that for the main bot status
+                    if (tb.fetch_status && tb.fetch_status.toLowerCase().includes('error')) {
+                        threadsBotStatusEl.textContent = tb.fetch_status;
+                    } else {
+                        threadsBotStatusEl.textContent = tb.bot_status || 'Unknown ❓';
+                    }
+                    applyStatusClass(threadsBotStatusEl, threadsBotStatusEl.textContent);
+
+
+                    // Only populate other fields if fetch was successful and data exists
+                    if (tb.fetch_status && tb.fetch_status.toLowerCase().includes('success')) {
+                        const threadsDiscordStatusEl = document.getElementById('threads-discord-status');
+                        threadsDiscordStatusEl.textContent = tb.discord_status || 'Unknown ❓'; // Threads bot might not track this
+                        applyStatusClass(threadsDiscordStatusEl, tb.discord_status || 'Unknown');
+
+                        const threadsApiStatusEl = document.getElementById('threads-api-status');
+                        threadsApiStatusEl.textContent = tb.last_threads_api_status || tb.last_target_api_status || 'Unknown ❓';
+                        applyStatusClass(threadsApiStatusEl, tb.last_threads_api_status || tb.last_target_api_status || '');
+                        document.getElementById('threads-api-time').textContent = `@ ${formatTimestamp(tb.last_threads_api_timestamp || tb.last_target_api_timestamp)}`;
+                        
+                        document.getElementById('threads-posts-attempted').textContent = tb.posts_attempted ?? '0';
+                        document.getElementById('threads-posts-succeeded').textContent = tb.posts_succeeded ?? '0';
+                        document.getElementById('threads-posts-failed').textContent = tb.posts_failed ?? '0';
+                        populateActivityLog('threads-activity-log-list', tb.recent_activity);
+                        document.getElementById('threads-monitoring-channel').textContent = tb.monitoring_channel || 'N/A';
+                    } else {
+                        // Clear or show error for other fields if fetch failed
+                        const fieldsToClear = ['threads-discord-status', 'threads-api-status', 'threads-posts-attempted', 'threads-posts-succeeded', 'threads-posts-failed', 'threads-monitoring-channel'];
+                        fieldsToClear.forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el) el.textContent = tb.fetch_status ? 'N/A (Fetch Error)' : 'N/A';
+                        });
+                        document.getElementById('threads-api-time').textContent = 'N/A';
+                        document.getElementById('threads-activity-log-list').innerHTML = `<li>${tb.fetch_status || 'Error fetching Threads bot data.'}</li>`;
+                    }
+                } else {
+                     document.getElementById('threads-bot-status').textContent = 'Data Error ❌';
+                }
+
+            } catch (error) {
+                console.error('Error fetching or processing combined status:', error);
+                document.getElementById('x-bot-status').textContent = 'Dashboard Error ❌';
+                document.getElementById('threads-bot-status').textContent = 'Dashboard Error ❌';
+            }
+        }
+
+        fetchAndUpdateStatus(); 
+        setInterval(fetchAndUpdateStatus, 7000); // Refresh every 7 seconds
+    </script>
+</body>
+</html>
+
